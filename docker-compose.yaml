@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: prsentswitcherbackend
+    ports:
+      - "443:443"
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
