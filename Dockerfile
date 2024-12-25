@@ -20,7 +20,7 @@ RUN chmod +x gradlew
 RUN ./gradlew bootJar
 
 # Expose the port the application runs on
-EXPOSE 443
+EXPOSE 8080
 
 # Run the application
 CMD ["java", "-jar", "build/libs/present-switcher-backend-0.0.1-SNAPSHOT.jar"]
