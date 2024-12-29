@@ -23,9 +23,7 @@ class GameWebSocketHandler(
     override fun afterConnectionEstablished(session: WebSocketSession) {
         logger.info("New connection established: $session")
         sessions.add(session)
-        sendToPlayer(session, OutcomeMessage(OutcomeAction.ROUND_NAME, ROUND.WAITING.value))
-        sendToPlayer(session, OutcomeMessage(OutcomeAction.UPDATE_PLAYERS, gameService.getAllPlayers()))
-//        broadcastPlayers()
+
     }
 
     override fun handleTransportError(session: WebSocketSession, exception: Throwable) {
@@ -41,9 +39,13 @@ class GameWebSocketHandler(
             when (incomingMessage.action) {
                 IncomeAction.JOIN_GAME -> {
                     val payload = objectMapper.convertValue(incomingMessage.data, JoinGamePayload::class.java)
-                    gameService.addPlayer(payload.name)
-                    sendToPlayer(session, OutcomeMessage(OutcomeAction.ROUND_NAME, ROUND.WAITING.value))
-                    broadcastPlayers()
+                    val player = gameService.addPlayer(payload.name, payload.playerId)
+                    println("Joined player $player")
+                    if (player != null) {
+                        sendStartData(session, player)
+                        broadcastPlayers()
+                        return
+                    }
                 }
 
                 IncomeAction.SWAP_PLAYERS -> {
@@ -61,26 +63,34 @@ class GameWebSocketHandler(
                 IncomeAction.VIEW_GIFT -> {
                     val payload = objectMapper.convertValue(incomingMessage.data, ViewGiftPayload::class.java)
                     val giftContent = gameService.viewGift(payload.playerId)
+                    println("giftContent: $giftContent")
                     sendToPlayer(session, OutcomeMessage(OutcomeAction.VIEW_GIFT, giftContent))
                 }
 
                 IncomeAction.ROUND_CHANGED -> {
                     val payload = objectMapper.convertValue(incomingMessage.data, RoundChangePayload::class.java)
+                    changeRound(payload.newRound)
                     when (payload.newRound) {
-                        ROUND.END -> {
-//                             TODO
-//                            gameService.endGame()
+                        ROUND.WAITING -> {
+                            gameService.endGame()
+                            sendAllPlayersEndGame()
                         }
 
                         ROUND.START -> {
+                            gameService.initializeItems()
                             sendAllPlayersStartPositions()
+                        }
+
+                        ROUND.TALK -> {
+                            gameService.setPlayerTurns()
+                            broadcastPlayers()
                         }
 
                         ROUND.SWAP -> {
                             broadcast(
                                 OutcomeMessage(
                                     OutcomeAction.PLAYER_TURN,
-                                    gameService.getAllPlayers().first().name
+                                    gameService.findFirstPlayerTurn()
                                 )
                             )
                         }
@@ -90,11 +100,19 @@ class GameWebSocketHandler(
                         }
 
 
-                        else -> {
-                            // do nothing
+                        ROUND.END -> {
+                            broadcastGameFinal()
                         }
                     }
-                    broadcast(OutcomeMessage(OutcomeAction.ROUND_NAME, payload.newRound.value))
+                }
+
+                IncomeAction.EXIT_GAME -> {
+                    val payload = objectMapper.convertValue(incomingMessage.data, PlayerExitPayload::class.java)
+                    val player = gameService.findPlayerById(payload.playerId)
+                    if (player != null) {
+                        gameService.disconnectPlayer(player)
+                        broadcastPlayers()
+                    }
                 }
             }
         } catch (e: Exception) {
@@ -134,6 +152,44 @@ class GameWebSocketHandler(
         val serializedMessage = objectMapper.writeValueAsString(message)
         sessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
     }
+
+    private fun changeRound(round: ROUND) {
+        if (gameService.getCurrentRound() != ROUND.SWAP) {
+            gameService.resetCurrentTurnPlayer()
+            broadcast(
+                OutcomeMessage(
+                    OutcomeAction.PLAYER_TURN,
+                    null
+                )
+            )
+        }
+        gameService.setCurrentRound(round)
+        broadcast(OutcomeMessage(OutcomeAction.ROUND_NAME, round.value))
+    }
+
+    private fun sendStartData(session: WebSocketSession, player: Player) {
+        sendToPlayer(session, OutcomeMessage(OutcomeAction.ROUND_NAME, gameService.getCurrentRound().value))
+        sendToPlayer(session, OutcomeMessage(OutcomeAction.UPDATE_PLAYERS, gameService.getAllPlayers()))
+        if (gameService.getCurrentRound() == ROUND.END) {
+            sendToPlayer(session, OutcomeMessage(OutcomeAction.GAME_FINISH, gameService.getAllGifts()))
+        }
+        sendToPlayer(session, OutcomeMessage(OutcomeAction.PLAYER_TURN, gameService.getCurrentTurnPlayer()))
+        sendToPlayer(session, OutcomeMessage(OutcomeAction.JOINED_PLAYER, player))
+    }
+
+    private fun sendAllPlayersEndGame() {
+        val players = gameService.getAllPlayers()
+        broadcast(OutcomeMessage(OutcomeAction.UPDATE_PLAYERS, players))
+        val round = gameService.getCurrentRound()
+        broadcast(OutcomeMessage(OutcomeAction.ROUND_NAME, round.value))
+        val currentTurnPlayer = gameService.getCurrentTurnPlayer()
+        broadcast(OutcomeMessage(OutcomeAction.PLAYER_TURN, currentTurnPlayer))
+    }
+
+    private fun broadcastGameFinal() {
+        val gifts = gameService.getAllGifts()
+        broadcast(OutcomeMessage(OutcomeAction.GAME_FINISH, gifts))
+    }
 }
 
 data class IncomeMessage<T>(
@@ -146,19 +202,21 @@ data class OutcomeMessage<T>(
     val data: T
 )
 
-data class JoinGamePayload(val name: String)
+data class JoinGamePayload(val name: String, val playerId: String? = null)
 data class MovePlayerPayload(val player1Id: String, val player2Id: String)
 data class ViewGiftPayload(val playerId: String)
 data class RoundChangePayload(val newRound: ROUND)
 
 enum class IncomeAction {
     JOIN_GAME,
+    EXIT_GAME,
     SWAP_PLAYERS,
     VIEW_GIFT,
     ROUND_CHANGED,
 }
 
 enum class OutcomeAction {
+    JOINED_PLAYER,
     UPDATE_PLAYERS,
     UPDATE_SWAPPED_PLAYERS,
     VIEW_GIFT,
@@ -166,10 +224,12 @@ enum class OutcomeAction {
     START_QUEUE,
     FINAL_QUEUE,
     PLAYER_TURN,
+    GAME_FINISH
 }
 
 data class StartQueueOutcomeData(val queue: List<Player>)
 data class FinalQueueOutcomeData(val queue: List<Player>)
+data class PlayerExitPayload(val playerId: String)
 
 
 enum class ROUND(val value: String) {
@@ -178,5 +238,5 @@ enum class ROUND(val value: String) {
     TALK("обсуждение"),
     SWAP("обмен подарками"),
     FINAL("очередь на финал"),
-    END("конец игры"),
+    END("итоги"),
 }
