@@ -23,4 +23,4 @@ RUN ./gradlew bootJar
 EXPOSE 8080
 
 # Run the application
-CMD ["java", "-jar", "build/libs/present-switcher-backend-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "build/libs/present-switcher-backend-0.0.2-SNAPSHOT.jar"]
