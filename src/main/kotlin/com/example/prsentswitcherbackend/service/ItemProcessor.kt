@@ -39,11 +39,3 @@ object ItemProcessor {
         return result
     }
 }
-
-fun main() {
-    ItemProcessor.readFile("подарки.txt")
-    val result = ItemProcessor.findItemsWithSum(9, 10000)
-    result.forEach { println(it) }
-    val totalSum = result.sumOf { it.price }
-    println("Total sum: $totalSum")
-}
