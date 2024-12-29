@@ -40,7 +40,7 @@ class GameService {
     private var currentTurnPlayer: Player? = null
 
     fun initializeItems() {
-        ItemProcessor.readFile("подарки.txt")
+        ItemProcessor.readFile("presents.txt")
         println("Старт игры для ${players.size} игроков")
         val items = ItemProcessor.findItemsWithSum(players.size, 10000)
         val totalSum = items.sumOf { it.price }
