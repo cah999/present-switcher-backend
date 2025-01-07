@@ -36,7 +36,7 @@ object ItemProcessor {
         println(items)
     }
 
-    fun findItemsWithSum(n: Int, k: Int, maxIterations: Int = 1000): List<Item> {
+    fun findItemsWithSum(n: Int, k: Int, maxIterations: Int): List<Item> {
         val targetRange = (k - 1000)..(k + 1000)
         var result: List<Item>
         var iterations = 0
@@ -46,4 +46,19 @@ object ItemProcessor {
         } while (result.sumOf { it.price } !in targetRange && iterations < maxIterations)
         return result
     }
+}
+
+fun main() {
+    var gifts: List<Gift> = emptyList()
+    ItemProcessor.readFile("presents.txt")
+//    println("Старт игры для ${players.size} игроков")
+    val items = ItemProcessor.findItemsWithSum(8, 10000, 500)
+    val totalSum = items.sumOf { it.price }
+    println("total sum: $totalSum")
+    println("Items $items")
+    gifts = items.mapIndexed { index, item -> Gift(index, item.name) }
+    println(gifts)
+//    println("Total sum: $totalSum")
+//    gifts = items.mapIndexed { index, item -> Gift(index, item.name) }
+//    println("Gifts: $gifts")
 }

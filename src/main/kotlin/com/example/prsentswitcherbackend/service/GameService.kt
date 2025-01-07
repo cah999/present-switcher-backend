@@ -5,6 +5,8 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -24,6 +26,7 @@ class GameService {
 
     private val players = ConcurrentHashMap<String, Player>()
     private val currentRound = AtomicInteger(0)
+    private val logger: Logger = LoggerFactory.getLogger(GameService::class.java)
 
     //    private val gifts = listOf(
 //        Gift(0, "Подарок где вот такое название 1"),
@@ -41,8 +44,8 @@ class GameService {
 
     fun initializeItems() {
         ItemProcessor.readFile("presents.txt")
-        println("Старт игры для ${players.size} игроков")
-        val items = ItemProcessor.findItemsWithSum(players.size, 10000)
+        logger.info("Старт игры для ${players.size} игроков")
+        val items = ItemProcessor.findItemsWithSum(players.size, 10000, 500)
         val totalSum = items.sumOf { it.price }
         println("Total sum: $totalSum")
         gifts = items.mapIndexed { index, item -> Gift(index, item.name) }
@@ -50,7 +53,7 @@ class GameService {
     }
 
     fun addPlayer(name: String, playerId: String?): Player? {
-        if (playerId != null && players.containsKey(playerId)) {
+        if (playerId != null && players.containsKey(playerId) && currentRound.get() != 0) {
             val player = players.values.first { it.id == playerId }
             player.isDisconnected = false
             return player
@@ -167,6 +170,7 @@ class GameService {
         players.clear()
         currentRound.set(0)
         playerIdCounter.set(1)
+        gifts = emptyList()
         currentTurnPlayer = null
     }
 
