@@ -113,7 +113,7 @@ class GameWebSocketHandler(
         logger.error("Error handling transport in session: $session, exc ${exception.message}", exception)
     }
 
-    override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
+    public override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
         try {
             logger.info("Received message: ${message.payload}")
             val incomingMessage = objectMapper.readValue(message.payload, IncomeMessage::class.java)

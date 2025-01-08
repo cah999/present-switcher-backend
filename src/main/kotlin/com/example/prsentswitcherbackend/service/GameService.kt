@@ -171,6 +171,7 @@ class GameService {
         currentRound.set(0)
         playerIdCounter.set(1)
         gifts = emptyList()
+        ItemProcessor.resetItems()
         currentTurnPlayer = null
     }
 

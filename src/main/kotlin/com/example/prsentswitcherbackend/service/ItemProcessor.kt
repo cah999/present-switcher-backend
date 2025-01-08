@@ -46,6 +46,11 @@ object ItemProcessor {
         } while (result.sumOf { it.price } !in targetRange && iterations < maxIterations)
         return result
     }
+
+    fun resetItems() = items.clear()
+
+
+    fun getItemsCount() = items.size
 }
 
 fun main() {
