@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
-import org.mockito.kotlin.any
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -22,11 +21,11 @@ class GameWebSocketHandlerIntegrationTest {
     @MockitoBean
     private lateinit var gameService: GameService
 
-    private lateinit var gameWebSocketHandler: GameWebSocketHandler
+    private lateinit var gameWebSocketHandler: TestGameWebSocketHandler
 
     @BeforeEach
     fun setUp() {
-        gameWebSocketHandler = GameWebSocketHandler(gameService, objectMapper)
+        gameWebSocketHandler = TestGameWebSocketHandler(gameService, objectMapper)
     }
 
 
@@ -134,5 +133,33 @@ class GameWebSocketHandlerIntegrationTest {
         gameWebSocketHandler.handleTextMessage(session, textMessage)
 
         verify(gameService).setCurrentRound(newRound)
+    }
+
+    @Test
+    fun `test handleTextMessage ROUND_CHANGED to START`() {
+        val session = mock(WebSocketSession::class.java)
+        val newRound = ROUND.START
+
+        val message = IncomeMessage(IncomeAction.ROUND_CHANGED, RoundChangePayload(newRound))
+        val textMessage = TextMessage(objectMapper.writeValueAsString(message))
+
+        gameWebSocketHandler.handleTextMessage(session, textMessage)
+
+        verify(gameService).setCurrentRound(newRound)
+        verify(gameService).initializeItems()
+    }
+
+    @Test
+    fun `test handleTextMessage ROUND_CHANGED to WAITING`() {
+        val session = mock(WebSocketSession::class.java)
+        val newRound = ROUND.WAITING
+
+        val message = IncomeMessage(IncomeAction.ROUND_CHANGED, RoundChangePayload(newRound))
+        val textMessage = TextMessage(objectMapper.writeValueAsString(message))
+
+        gameWebSocketHandler.handleTextMessage(session, textMessage)
+
+        verify(gameService).setCurrentRound(newRound)
+        verify(gameService).endGame()
     }
 }
