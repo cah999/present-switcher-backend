@@ -42,22 +42,13 @@ class GameService {
     }
 
     fun addPlayer(name: String, playerId: String?): Player? {
-        if (playerId != null && players.containsKey(playerId) && currentRound.get() != 0) {
-            val player = players.values.first { it.id == playerId }
-            player.isDisconnected = false
-            return player
+        if (isRejoiningPlayer(playerId)) {
+            return rejoinPlayer(playerId!!)
         }
-        if (players.size >= 9) {
+        if (isPlayerLimitReached() || isPlayerNameTaken(name)) {
             return null
         }
-        if (players.values.any { it.name == name }) {
-            return null
-        }
-        val position = newPlayerId.getAndIncrement()
-        val id = "player-$position"
-        val player = Player(id, name, null)
-        players[id] = player
-        return player
+        return createNewPlayer(name)
     }
 
     fun findNextPlayerTurn(currentPlayerIdTurn: String): Player? {
@@ -161,6 +152,32 @@ class GameService {
         }
         println("result = $result")
         return result
+    }
+
+    private fun isRejoiningPlayer(playerId: String?): Boolean {
+        return playerId != null && players.containsKey(playerId) && currentRound.get() != 0
+    }
+
+    private fun rejoinPlayer(playerId: String): Player {
+        val player = players.values.first { it.id == playerId }
+        player.isDisconnected = false
+        return player
+    }
+
+    private fun isPlayerLimitReached(): Boolean {
+        return players.size >= 9
+    }
+
+    private fun isPlayerNameTaken(name: String): Boolean {
+        return players.values.any { it.name == name }
+    }
+
+    private fun createNewPlayer(name: String): Player {
+        val position = newPlayerId.getAndIncrement()
+        val id = "player-$position"
+        val player = Player(id, name, null)
+        players[id] = player
+        return player
     }
 
     private fun shufflePlayerTurns() {

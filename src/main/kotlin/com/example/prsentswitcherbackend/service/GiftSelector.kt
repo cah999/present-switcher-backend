@@ -35,7 +35,7 @@ object GiftSelector {
         do {
             result = items.shuffled().take(itemsCount)
             iterations++
-        } while (result.sumOf { it.price } !in targetRange && iterations < maxIterations)
+        } while (shouldRegenerate(result, targetRange, iterations, maxIterations))
         return result
     }
 
@@ -43,4 +43,16 @@ object GiftSelector {
     fun resetItems() = items.clear()
 
     fun getItemsCount() = items.size
+
+    private fun shouldRegenerate(
+        result: List<Item>,
+        targetRange: IntRange,
+        iterations: Int,
+        maxIterations: Int
+    ): Boolean {
+        return sumWithinRange(result, targetRange).not() || iterations >= maxIterations
+    }
+
+    private fun sumWithinRange(result: List<Item>, targetRange: IntRange) =
+        result.sumOf { it.price } in targetRange
 }
