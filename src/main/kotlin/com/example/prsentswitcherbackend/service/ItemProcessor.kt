@@ -44,14 +44,3 @@ object ItemProcessor {
 
     fun getItemsCount() = items.size
 }
-
-fun main() {
-    var gifts: List<Gift> = emptyList()
-    ItemProcessor.readFile("presents.txt")
-    val items = ItemProcessor.findItemsWithSum(8, 10000, 500)
-    val totalSum = items.sumOf { it.price }
-    println("total sum: $totalSum")
-    println("Items $items")
-    gifts = items.mapIndexed { index, item -> Gift(index, item.name) }
-    println(gifts)
-}
