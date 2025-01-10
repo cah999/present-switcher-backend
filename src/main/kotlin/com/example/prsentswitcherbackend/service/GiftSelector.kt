@@ -37,9 +37,9 @@ object GiftSelector {
         return result
     }
 
-    // метод для тестов
     fun resetItems() = items.clear()
 
+    // метод для тестов
     fun getItemsCount() = items.size
 
     private fun shouldRegenerate(
@@ -48,7 +48,7 @@ object GiftSelector {
         iterations: Int,
         maxIterations: Int
     ): Boolean {
-        return sumWithinRange(result, targetRange).not() || iterations >= maxIterations
+        return sumWithinRange(result, targetRange).not() && iterations < maxIterations
     }
 
     private fun sumWithinRange(result: List<Item>, targetRange: IntRange) =

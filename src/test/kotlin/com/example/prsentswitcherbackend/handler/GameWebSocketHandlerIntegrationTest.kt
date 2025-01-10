@@ -1,10 +1,12 @@
 package com.example.prsentswitcherbackend.handler
 
+import com.example.prsentswitcherbackend.command.GameActionCommandFactory
+import com.example.prsentswitcherbackend.model.Player
 import com.example.prsentswitcherbackend.model.enums.IncomeAction
 import com.example.prsentswitcherbackend.model.enums.ROUND
-import com.example.prsentswitcherbackend.service.GameService
-import com.example.prsentswitcherbackend.model.Player
 import com.example.prsentswitcherbackend.model.income.*
+import com.example.prsentswitcherbackend.service.GameService
+import com.example.prsentswitcherbackend.service.MessageService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,7 +30,11 @@ class GameWebSocketHandlerIntegrationTest {
 
     @BeforeEach
     fun setUp() {
-        gameWebSocketHandler = TestGameWebSocketHandler(gameService, objectMapper)
+        val messageService = MessageService()
+        gameWebSocketHandler = TestGameWebSocketHandler(
+            messageService,
+            GameActionCommandFactory(messageService, gameService)
+        )
     }
 
 

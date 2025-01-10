@@ -186,6 +186,6 @@ class GameService {
     }
 
     companion object {
-        private const val MAX_PLAYERS = 10
+        private const val MAX_PLAYERS = 9
     }
 }
