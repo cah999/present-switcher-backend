@@ -36,12 +36,12 @@ object ItemProcessor {
         println(items)
     }
 
-    fun findItemsWithSum(n: Int, k: Int, maxIterations: Int): List<Item> {
-        val targetRange = (k - 1000)..(k + 1000)
+    fun findItemsWithSum(itemsCount: Int, targetSum: Int, maxIterations: Int): List<Item> {
+        val targetRange = (targetSum - 1000)..(targetSum + 1000)
         var result: List<Item>
         var iterations = 0
         do {
-            result = items.shuffled().take(n)
+            result = items.shuffled().take(itemsCount)
             iterations++
         } while (result.sumOf { it.price } !in targetRange && iterations < maxIterations)
         return result

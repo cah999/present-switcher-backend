@@ -39,7 +39,7 @@ class GameService {
 //        Gift(7, "Подарок 8"),
 //    )
     private lateinit var gifts: List<Gift>
-    private val playerIdCounter = AtomicInteger(1)
+    private val newPlayerId = AtomicInteger(1)
     private var currentTurnPlayer: Player? = null
 
     fun initializeItems() {
@@ -67,7 +67,7 @@ class GameService {
         if (players.values.any { it.name == name }) {
             return null
         }
-        val position = playerIdCounter.getAndIncrement()
+        val position = newPlayerId.getAndIncrement()
         val id = "player-$position"
         val player = Player(id, name, null)
         players[id] = player
@@ -169,7 +169,7 @@ class GameService {
     fun endGame() {
         players.clear()
         currentRound.set(0)
-        playerIdCounter.set(1)
+        newPlayerId.set(1)
         gifts = emptyList()
         ItemProcessor.resetItems()
         currentTurnPlayer = null

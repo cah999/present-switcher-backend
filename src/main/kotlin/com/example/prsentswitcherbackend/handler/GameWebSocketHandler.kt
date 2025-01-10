@@ -17,12 +17,12 @@ class GameWebSocketHandler(
     private val objectMapper: ObjectMapper,
 ) : TextWebSocketHandler() {
 
-    private val sessions = CopyOnWriteArrayList<WebSocketSession>()
+    private val playerSessions = CopyOnWriteArrayList<WebSocketSession>()
     private val logger: Logger = LoggerFactory.getLogger(GameWebSocketHandler::class.java)
 
-    private fun sendPlayers() {
+    private fun broadcastPlayers() {
         val players = gameService.getAllPlayers()
-        sessions.forEach {
+        playerSessions.forEach {
             it.sendMessage(
                 TextMessage(
                     objectMapper.writeValueAsString(
@@ -39,25 +39,25 @@ class GameWebSocketHandler(
     fun broadcastPlayersSwap(player1Id: String, player2Id: String) {
         val message = OutcomeMessage(OutcomeAction.UPDATE_SWAPPED_PLAYERS, Pair(player1Id, player2Id))
         val serializedMessage = objectMapper.writeValueAsString(message)
-        sessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
+        playerSessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
     }
 
-    private fun send(session: WebSocketSession, message: OutcomeMessage<*>) {
+    private fun sendMessageToPlayer(session: WebSocketSession, message: OutcomeMessage<*>) {
         session.sendMessage(TextMessage(objectMapper.writeValueAsString(message)))
     }
 
-    private fun sendAllPlayersStartPositions() {
+    private fun broadcastStartPositions() {
         val players = gameService.getAllPlayersShuffled()
         val message = OutcomeMessage(OutcomeAction.START_QUEUE, StartQueueOutcomeData(players))
         val serializedMessage = objectMapper.writeValueAsString(message)
-        sessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
+        playerSessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
     }
 
-    private fun sendAllPlayersFinalQueue() {
+    private fun broadcastFinalQueue() {
         val players = gameService.getAllPlayersShuffledQueue()
         val message = OutcomeMessage(OutcomeAction.FINAL_QUEUE, FinalQueueOutcomeData(players))
         val serializedMessage = objectMapper.writeValueAsString(message)
-        sessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
+        playerSessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
     }
 
     // обновить раунд игры
@@ -66,47 +66,47 @@ class GameWebSocketHandler(
             gameService.resetCurrentTurnPlayer()
             val turnMessage = OutcomeMessage(OutcomeAction.PLAYER_TURN, null)
             val serializedTurnMessage = objectMapper.writeValueAsString(turnMessage)
-            sessions.forEach { it.sendMessage(TextMessage(serializedTurnMessage)) }
+            playerSessions.forEach { it.sendMessage(TextMessage(serializedTurnMessage)) }
         }
         gameService.setCurrentRound(round)
         val roundMessage = OutcomeMessage(OutcomeAction.ROUND_NAME, round.value)
         val serializedRoundMessage = objectMapper.writeValueAsString(roundMessage)
-        sessions.forEach { it.sendMessage(TextMessage(serializedRoundMessage)) }
+        playerSessions.forEach { it.sendMessage(TextMessage(serializedRoundMessage)) }
     }
 
-    fun sendStartData(session: WebSocketSession, player: Player) {
-        send(session, OutcomeMessage(OutcomeAction.ROUND_NAME, gameService.getCurrentRound().value))
-        send(session, OutcomeMessage(OutcomeAction.UPDATE_PLAYERS, gameService.getAllPlayers()))
+    fun sendStartDataToPlayer(session: WebSocketSession, player: Player) {
+        sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.ROUND_NAME, gameService.getCurrentRound().value))
+        sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.UPDATE_PLAYERS, gameService.getAllPlayers()))
         if (gameService.getCurrentRound() == ROUND.END) {
-            send(session, OutcomeMessage(OutcomeAction.GAME_FINISH, gameService.getAllGifts()))
+            sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.GAME_FINISH, gameService.getAllGifts()))
         }
-        send(session, OutcomeMessage(OutcomeAction.PLAYER_TURN, gameService.getCurrentTurnPlayer()))
-        send(session, OutcomeMessage(OutcomeAction.JOINED_PLAYER, player))
+        sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.PLAYER_TURN, gameService.getCurrentTurnPlayer()))
+        sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.JOINED_PLAYER, player))
     }
 
-    private fun sendEndGame() {
+    private fun broadcastEndGame() {
         val players = gameService.getAllPlayers()
         val updateMessage = OutcomeMessage(OutcomeAction.UPDATE_PLAYERS, players)
-        sessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(updateMessage))) }
+        playerSessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(updateMessage))) }
 
         val round = gameService.getCurrentRound()
         val roundMessage = OutcomeMessage(OutcomeAction.ROUND_NAME, round.value)
-        sessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(roundMessage))) }
+        playerSessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(roundMessage))) }
 
         val currentTurnPlayer = gameService.getCurrentTurnPlayer()
         val turnMessage = OutcomeMessage(OutcomeAction.PLAYER_TURN, currentTurnPlayer)
-        sessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(turnMessage))) }
+        playerSessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(turnMessage))) }
     }
 
-    fun sendGameFinal() {
+    fun broadcastGameFinal() {
         val gifts = gameService.getAllGifts()
         val message = OutcomeMessage(OutcomeAction.GAME_FINISH, gifts)
-        sessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(message))) }
+        playerSessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(message))) }
     }
 
     override fun afterConnectionEstablished(session: WebSocketSession) {
         logger.info("New connection established: $session")
-        sessions.add(session)
+        playerSessions.add(session)
     }
 
     override fun handleTransportError(session: WebSocketSession, exception: Throwable) {
@@ -125,8 +125,8 @@ class GameWebSocketHandler(
                     val player = gameService.addPlayer(payload.name, payload.playerId)
                     println("Joined player $player")
                     if (player != null) {
-                        sendStartData(session, player)
-                        sendPlayers()
+                        sendStartDataToPlayer(session, player)
+                        broadcastPlayers()
                         return
                     }
                 }
@@ -141,14 +141,14 @@ class GameWebSocketHandler(
                         gameService.findNextPlayerTurn(currentPlayerIdTurn = payload.player1Id) ?: ""
                     )
                     val serializedTurnMessage = objectMapper.writeValueAsString(turnMessage)
-                    sessions.forEach { it.sendMessage(TextMessage(serializedTurnMessage)) }
+                    playerSessions.forEach { it.sendMessage(TextMessage(serializedTurnMessage)) }
                 }
 
                 IncomeAction.VIEW_GIFT -> {
                     val payload = objectMapper.convertValue(incomingMessage.data, ViewGiftPayload::class.java)
                     val giftContent = gameService.viewGift(payload.playerId)
                     println("giftContent: $giftContent")
-                    send(session, OutcomeMessage(OutcomeAction.VIEW_GIFT, giftContent))
+                    sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.VIEW_GIFT, giftContent))
                 }
 
                 IncomeAction.ROUND_CHANGED -> {
@@ -157,17 +157,17 @@ class GameWebSocketHandler(
                     when (payload.newRound) {
                         ROUND.WAITING -> {
                             gameService.endGame()
-                            sendEndGame()
+                            broadcastEndGame()
                         }
 
                         ROUND.START -> {
                             gameService.initializeItems()
-                            sendAllPlayersStartPositions()
+                            broadcastStartPositions()
                         }
 
                         ROUND.TALK -> {
                             gameService.setPlayerTurns()
-                            sendPlayers()
+                            broadcastPlayers()
                         }
 
                         ROUND.SWAP -> {
@@ -176,15 +176,15 @@ class GameWebSocketHandler(
                                 gameService.findFirstPlayerTurn()
                             )
                             val serializedTurnMessage = objectMapper.writeValueAsString(turnMessage)
-                            sessions.forEach { it.sendMessage(TextMessage(serializedTurnMessage)) }
+                            playerSessions.forEach { it.sendMessage(TextMessage(serializedTurnMessage)) }
                         }
 
                         ROUND.FINAL -> {
-                            sendAllPlayersFinalQueue()
+                            broadcastFinalQueue()
                         }
 
                         ROUND.END -> {
-                            sendGameFinal()
+                            broadcastGameFinal()
                         }
                     }
                 }
@@ -194,7 +194,7 @@ class GameWebSocketHandler(
                     val player = gameService.findPlayerById(payload.playerId)
                     if (player != null) {
                         gameService.disconnectPlayer(player)
-                        sendPlayers()
+                        broadcastPlayers()
                     }
                 }
             }
@@ -205,7 +205,7 @@ class GameWebSocketHandler(
 
     override fun afterConnectionClosed(session: WebSocketSession, status: org.springframework.web.socket.CloseStatus) {
         logger.info("Connection closed: $session")
-        sessions.remove(session)
+        playerSessions.remove(session)
     }
 }
 
