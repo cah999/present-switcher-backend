@@ -6,7 +6,9 @@ import java.nio.charset.StandardCharsets
 
 data class Item(val name: String, val price: Int)
 
+
 object ItemProcessor {
+    private const val ACCEPTABLE_SUM_RANGE = 1000
 
     private val items = mutableListOf<Item>()
 
@@ -27,7 +29,7 @@ object ItemProcessor {
     }
 
     fun findItemsWithSum(itemsCount: Int, targetSum: Int, maxIterations: Int): List<Item> {
-        val targetRange = (targetSum - 1000)..(targetSum + 1000)
+        val targetRange = (targetSum - ACCEPTABLE_SUM_RANGE)..(targetSum + ACCEPTABLE_SUM_RANGE)
         var result: List<Item>
         var iterations = 0
         do {
@@ -39,7 +41,6 @@ object ItemProcessor {
 
     // методы для тестов
     fun resetItems() = items.clear()
-
 
     fun getItemsCount() = items.size
 }
