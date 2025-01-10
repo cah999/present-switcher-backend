@@ -34,7 +34,7 @@ class RoundChangedCommand(
             }
 
             ROUND.SWAP -> {
-                val firstPlayerTurn = gameService.findFirstPlayerTurn()
+                val firstPlayerTurn = gameService.findAndSetFirstPlayerTurn()
                 messageService.broadcastCurrentTurnPlayer(firstPlayerTurn)
             }
 

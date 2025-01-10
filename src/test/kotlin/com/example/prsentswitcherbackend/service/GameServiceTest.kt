@@ -45,7 +45,7 @@ class GameServiceTest {
         val player2 = gameService.addPlayer("Player2", null)
         player1?.turn = 0
         player2?.turn = 1
-        val nextPlayer = gameService.findNextPlayerTurn(player1!!.id)
+        val nextPlayer = gameService.findAndSetNextPlayerTurn(player1!!.id)
         assertEquals(player2, nextPlayer)
     }
 
@@ -55,7 +55,7 @@ class GameServiceTest {
         val player2 = gameService.addPlayer("Player2", null)
         player1?.turn = 0
         player2?.turn = 1
-        val firstPlayer = gameService.findFirstPlayerTurn()
+        val firstPlayer = gameService.findAndSetFirstPlayerTurn()
         assertEquals(player1, firstPlayer)
     }
 
@@ -63,7 +63,7 @@ class GameServiceTest {
     fun `test resetCurrentTurnPlayer`() {
         gameService.addPlayer("Player1", null)
         gameService.getAllPlayersShuffled()
-        val turn = gameService.findFirstPlayerTurn()
+        val turn = gameService.findAndSetFirstPlayerTurn()
         gameService.resetCurrentTurnPlayer()
         assertNotNull(turn)
         assertNull(gameService.getCurrentTurnPlayer())

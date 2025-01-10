@@ -16,7 +16,7 @@ class SwapPlayersCommand(
         val payload = JsonUtils.convertData(incomeMessage.data, MovePlayerPayload::class.java)
         gameService.swapPlayers(payload.player1Id, payload.player2Id)
         messageService.broadcastPlayersSwap(payload.player1Id, payload.player2Id)
-        val nextPlayerTurn = gameService.findNextPlayerTurn(currentPlayerIdTurn = payload.player1Id)
+        val nextPlayerTurn = gameService.findAndSetNextPlayerTurn(currentPlayerIdTurn = payload.player1Id)
         messageService.broadcastCurrentTurnPlayer(nextPlayerTurn)
     }
 }

@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets
 
 object GiftSelector {
     private const val ACCEPTABLE_SUM_RANGE = 1000
+    private const val MAX_ITERATIONS = 1000
 
     private val items = mutableListOf<Item>()
 
@@ -26,7 +27,7 @@ object GiftSelector {
         println(items)
     }
 
-    fun findItemsWithSum(itemsCount: Int, targetSum: Int, maxIterations: Int): List<Item> {
+    fun findItemsWithSum(itemsCount: Int, targetSum: Int, maxIterations: Int = MAX_ITERATIONS): List<Item> {
         val targetRange = (targetSum - ACCEPTABLE_SUM_RANGE)..(targetSum + ACCEPTABLE_SUM_RANGE)
         var result: List<Item>
         var iterations = 0
