@@ -47,6 +47,7 @@ object ItemProcessor {
         return result
     }
 
+    // методы для тестов
     fun resetItems() = items.clear()
 
 
