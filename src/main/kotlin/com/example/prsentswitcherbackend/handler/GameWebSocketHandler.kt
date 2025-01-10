@@ -21,41 +21,6 @@ class GameWebSocketHandler(
     private val logger: Logger = LoggerFactory.getLogger(GameWebSocketHandler::class.java)
 
 
-    fun broadcastPlayersSwap(player1Id: String, player2Id: String) {
-        val message = OutcomeMessage(OutcomeAction.UPDATE_SWAPPED_PLAYERS, Pair(player1Id, player2Id))
-        val serializedMessage = objectMapper.writeValueAsString(message)
-        playerSessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
-    }
-
-    fun changeRound(round: ROUND) {
-        if (gameService.getCurrentRound() != ROUND.SWAP) {
-            gameService.resetCurrentTurnPlayer()
-            val turnMessage = OutcomeMessage(OutcomeAction.PLAYER_TURN, null)
-            val serializedTurnMessage = objectMapper.writeValueAsString(turnMessage)
-            playerSessions.forEach { it.sendMessage(TextMessage(serializedTurnMessage)) }
-        }
-        gameService.setCurrentRound(round)
-        val roundMessage = OutcomeMessage(OutcomeAction.ROUND_NAME, round.value)
-        val serializedRoundMessage = objectMapper.writeValueAsString(roundMessage)
-        playerSessions.forEach { it.sendMessage(TextMessage(serializedRoundMessage)) }
-    }
-
-    fun sendStartDataToPlayer(session: WebSocketSession, player: Player) {
-        sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.ROUND_NAME, gameService.getCurrentRound().value))
-        sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.UPDATE_PLAYERS, gameService.getAllPlayers()))
-        if (gameService.getCurrentRound() == ROUND.END) {
-            sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.GAME_FINISH, gameService.getAllGifts()))
-        }
-        sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.PLAYER_TURN, gameService.getCurrentTurnPlayer()))
-        sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.JOINED_PLAYER, player))
-    }
-
-    fun broadcastGameFinal() {
-        val gifts = gameService.getAllGifts()
-        val message = OutcomeMessage(OutcomeAction.GAME_FINISH, gifts)
-        playerSessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(message))) }
-    }
-
     override fun afterConnectionEstablished(session: WebSocketSession) {
         logger.info("New connection established: $session")
         playerSessions.add(session)
@@ -158,6 +123,41 @@ class GameWebSocketHandler(
     override fun afterConnectionClosed(session: WebSocketSession, status: org.springframework.web.socket.CloseStatus) {
         logger.info("Connection closed: $session")
         playerSessions.remove(session)
+    }
+
+    private fun broadcastPlayersSwap(player1Id: String, player2Id: String) {
+        val message = OutcomeMessage(OutcomeAction.UPDATE_SWAPPED_PLAYERS, Pair(player1Id, player2Id))
+        val serializedMessage = objectMapper.writeValueAsString(message)
+        playerSessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
+    }
+
+    private fun changeRound(round: ROUND) {
+        if (gameService.getCurrentRound() != ROUND.SWAP) {
+            gameService.resetCurrentTurnPlayer()
+            val turnMessage = OutcomeMessage(OutcomeAction.PLAYER_TURN, null)
+            val serializedTurnMessage = objectMapper.writeValueAsString(turnMessage)
+            playerSessions.forEach { it.sendMessage(TextMessage(serializedTurnMessage)) }
+        }
+        gameService.setCurrentRound(round)
+        val roundMessage = OutcomeMessage(OutcomeAction.ROUND_NAME, round.value)
+        val serializedRoundMessage = objectMapper.writeValueAsString(roundMessage)
+        playerSessions.forEach { it.sendMessage(TextMessage(serializedRoundMessage)) }
+    }
+
+    private fun sendStartDataToPlayer(session: WebSocketSession, player: Player) {
+        sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.ROUND_NAME, gameService.getCurrentRound().value))
+        sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.UPDATE_PLAYERS, gameService.getAllPlayers()))
+        if (gameService.getCurrentRound() == ROUND.END) {
+            sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.GAME_FINISH, gameService.getAllGifts()))
+        }
+        sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.PLAYER_TURN, gameService.getCurrentTurnPlayer()))
+        sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.JOINED_PLAYER, player))
+    }
+
+    private fun broadcastGameFinal() {
+        val gifts = gameService.getAllGifts()
+        val message = OutcomeMessage(OutcomeAction.GAME_FINISH, gifts)
+        playerSessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(message))) }
     }
 
     private fun broadcastPlayers() {
