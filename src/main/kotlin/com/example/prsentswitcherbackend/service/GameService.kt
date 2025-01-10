@@ -165,7 +165,7 @@ class GameService {
     }
 
     private fun isPlayerLimitReached(): Boolean {
-        return players.size >= 9
+        return players.size >= MAX_PLAYERS
     }
 
     private fun isPlayerNameTaken(name: String): Boolean {
@@ -191,5 +191,9 @@ class GameService {
             player.position = index
             player.turn = index
         }
+    }
+
+    companion object {
+        private const val MAX_PLAYERS = 10
     }
 }
