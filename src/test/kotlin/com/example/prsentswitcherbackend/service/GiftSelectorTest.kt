@@ -61,8 +61,6 @@ class GiftSelectorTest {
         val filePath = "testdata/large_valid_items.txt"
         GiftSelector.readFile(filePath)
         val result = GiftSelector.findItemsWithSum(2, 10000, 1)
-        println(result)
-        println(result.sumOf { it.price })
         assertTrue(result.isEmpty() || result.sumOf { it.price } !in 9000..11000)
     }
 
@@ -71,8 +69,6 @@ class GiftSelectorTest {
         val filePath = "testdata/large_valid_items.txt"
         GiftSelector.readFile(filePath)
         val result = GiftSelector.findItemsWithSum(7, 4000, 1000)
-        println(result)
-        println(result.sumOf { it.price })
         assertTrue(result.sumOf { it.price } in 3000..5000)
     }
 

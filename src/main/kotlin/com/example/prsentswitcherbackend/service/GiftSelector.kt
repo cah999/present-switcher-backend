@@ -1,6 +1,7 @@
 package com.example.prsentswitcherbackend.service
 
 import com.example.prsentswitcherbackend.model.Item
+import org.slf4j.LoggerFactory
 import org.springframework.core.io.ClassPathResource
 import org.springframework.util.StreamUtils
 import java.nio.charset.StandardCharsets
@@ -10,6 +11,7 @@ object GiftSelector {
     private const val MAX_ITERATIONS = 1000
 
     private val items = mutableListOf<Item>()
+    private val logger = LoggerFactory.getLogger(GiftSelector::class.java)
 
     fun readFile(filePath: String) {
         val file = StreamUtils.copyToString(ClassPathResource(filePath).inputStream, StandardCharsets.UTF_8)
@@ -23,8 +25,8 @@ object GiftSelector {
                 }
             }
         }
-        println("Read ${items.size} items")
-        println(items)
+        logger.info("Read ${items.size} items")
+        logger.info("Items: $items")
     }
 
     fun findItemsWithSum(itemsCount: Int, targetSum: Int, maxIterations: Int = MAX_ITERATIONS): List<Item> {
