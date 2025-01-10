@@ -29,7 +29,7 @@ class GameService {
         val items = GiftSelector.findItemsWithSum(players.size, 10000, 500)
         val totalSum = items.sumOf { it.price }
         println("Total sum: $totalSum")
-        gifts = items.mapIndexed { index, item -> Gift(index, item.name) }
+        gifts = items.mapIndexed { index, item -> item.toGift(index) }
         println("Gifts: $gifts")
     }
 
@@ -102,10 +102,10 @@ class GameService {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun disconnectPlayer(player: Player) {
-        players.values.first { it.id == player.id }.isDisconnected = true
+        players.values.first { it.id == player.id }.disconnect()
         GlobalScope.launch {
             delay(30000) // 30 seconds delay
-            if (players[player.id]?.isDisconnected == true) {
+            if (players[player.id]?.isConnected() == false) {
                 players.remove(player.id)
             }
         }
@@ -140,7 +140,7 @@ class GameService {
         println("players = $players")
         val result = players.values.map {
             val gift = gifts.firstOrNull { gift -> gift.position == it.position }
-            "${it.name} - ${gift?.content ?: "нет подарка"}"
+            "${it.name} - ${gift?.isEmpty() ?: "нет подарка"}"
         }
         println("result = $result")
         return result
@@ -152,7 +152,7 @@ class GameService {
 
     private fun rejoinPlayer(playerId: String): Player {
         val player = players.values.first { it.id == playerId }
-        player.isDisconnected = false
+        player.connect()
         return player
     }
 
