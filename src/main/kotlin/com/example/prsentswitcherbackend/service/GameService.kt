@@ -1,6 +1,8 @@
 package com.example.prsentswitcherbackend.service
 
-import com.example.prsentswitcherbackend.handler.ROUND
+import com.example.prsentswitcherbackend.model.Gift
+import com.example.prsentswitcherbackend.model.Player
+import com.example.prsentswitcherbackend.model.enums.ROUND
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -10,16 +12,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
-
-data class Player(
-    val id: String,
-    val name: String,
-    var position: Int? = null,
-    var turn: Int? = null,
-    var isDisconnected: Boolean = false
-)
-
-data class Gift(val position: Int, val content: String)
 
 @Service
 class GameService {

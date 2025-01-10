@@ -1,7 +1,14 @@
 package com.example.prsentswitcherbackend.handler
 
+import com.example.prsentswitcherbackend.model.enums.IncomeAction
+import com.example.prsentswitcherbackend.model.enums.OutcomeAction
+import com.example.prsentswitcherbackend.model.enums.ROUND
 import com.example.prsentswitcherbackend.service.GameService
-import com.example.prsentswitcherbackend.service.Player
+import com.example.prsentswitcherbackend.model.Player
+import com.example.prsentswitcherbackend.model.income.*
+import com.example.prsentswitcherbackend.model.outcome.FinalQueueOutcomeData
+import com.example.prsentswitcherbackend.model.outcome.OutcomeMessage
+import com.example.prsentswitcherbackend.model.outcome.StartQueueOutcomeData
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -191,53 +198,4 @@ class GameWebSocketHandler(
         broadcastCurrentRound()
         broadcastCurrentTurnPlayer()
     }
-}
-
-data class IncomeMessage<T>(
-    val action: IncomeAction,
-    val data: T
-)
-
-data class OutcomeMessage<T>(
-    val action: OutcomeAction,
-    val data: T
-)
-
-data class JoinGamePayload(val name: String, val playerId: String? = null)
-data class MovePlayerPayload(val player1Id: String, val player2Id: String)
-data class ViewGiftPayload(val playerId: String)
-data class RoundChangePayload(val newRound: ROUND)
-
-enum class IncomeAction {
-    JOIN_GAME,
-    EXIT_GAME,
-    SWAP_PLAYERS,
-    VIEW_GIFT,
-    ROUND_CHANGED,
-}
-
-enum class OutcomeAction {
-    JOINED_PLAYER,
-    UPDATE_PLAYERS,
-    UPDATE_SWAPPED_PLAYERS,
-    VIEW_GIFT,
-    ROUND_NAME,
-    START_QUEUE,
-    FINAL_QUEUE,
-    PLAYER_TURN,
-    GAME_FINISH
-}
-
-data class StartQueueOutcomeData(val queue: List<Player>)
-data class FinalQueueOutcomeData(val queue: List<Player>)
-data class PlayerExitPayload(val playerId: String)
-
-
-enum class ROUND(val value: String) {
-    WAITING("ожидание участников"),
-    START("распределение подарков"),
-    TALK("обсуждение"),
-    SWAP("обмен подарками"),
-    FINAL("очередь на финал"),
-    END("итоги"),
 }

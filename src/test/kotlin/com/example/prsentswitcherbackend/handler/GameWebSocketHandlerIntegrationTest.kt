@@ -1,7 +1,10 @@
 package com.example.prsentswitcherbackend.handler
 
+import com.example.prsentswitcherbackend.model.enums.IncomeAction
+import com.example.prsentswitcherbackend.model.enums.ROUND
 import com.example.prsentswitcherbackend.service.GameService
-import com.example.prsentswitcherbackend.service.Player
+import com.example.prsentswitcherbackend.model.Player
+import com.example.prsentswitcherbackend.model.income.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

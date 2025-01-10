@@ -4,8 +4,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class PrsentSwitcherBackendApplication
+class PresentSwitcherBackendApplication
 
 fun main(args: Array<String>) {
-    runApplication<PrsentSwitcherBackendApplication>(*args)
+    runApplication<PresentSwitcherBackendApplication>(*args)
 }

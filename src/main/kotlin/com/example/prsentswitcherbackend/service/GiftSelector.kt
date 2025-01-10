@@ -1,11 +1,9 @@
 package com.example.prsentswitcherbackend.service
 
+import com.example.prsentswitcherbackend.model.Item
 import org.springframework.core.io.ClassPathResource
 import org.springframework.util.StreamUtils
 import java.nio.charset.StandardCharsets
-
-data class Item(val name: String, val price: Int)
-
 
 object GiftSelector {
     private const val ACCEPTABLE_SUM_RANGE = 1000
