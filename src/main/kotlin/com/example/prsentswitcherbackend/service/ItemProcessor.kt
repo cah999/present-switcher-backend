@@ -22,16 +22,6 @@ object ItemProcessor {
                 }
             }
         }
-//        file.forEachLine { line ->
-//            val parts = line.split("-")
-//            if (parts.size == 2) {
-//                val name = parts[0].trim()
-//                val price = parts[1].trim().toIntOrNull()
-//                if (price != null) {
-//                    items.add(Item(name, price))
-//                }
-//            }
-//        }
         println("Read ${items.size} items")
         println(items)
     }
@@ -57,14 +47,10 @@ object ItemProcessor {
 fun main() {
     var gifts: List<Gift> = emptyList()
     ItemProcessor.readFile("presents.txt")
-//    println("Старт игры для ${players.size} игроков")
     val items = ItemProcessor.findItemsWithSum(8, 10000, 500)
     val totalSum = items.sumOf { it.price }
     println("total sum: $totalSum")
     println("Items $items")
     gifts = items.mapIndexed { index, item -> Gift(index, item.name) }
     println(gifts)
-//    println("Total sum: $totalSum")
-//    gifts = items.mapIndexed { index, item -> Gift(index, item.name) }
-//    println("Gifts: $gifts")
 }

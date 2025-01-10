@@ -60,7 +60,6 @@ class GameWebSocketHandler(
         playerSessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
     }
 
-    // обновить раунд игры
     fun changeRound(round: ROUND) {
         if (gameService.getCurrentRound() != ROUND.SWAP) {
             gameService.resetCurrentTurnPlayer()
@@ -209,7 +208,6 @@ class GameWebSocketHandler(
     }
 }
 
-// убрать потом )))
 data class IncomeMessage<T>(
     val action: IncomeAction,
     val data: T

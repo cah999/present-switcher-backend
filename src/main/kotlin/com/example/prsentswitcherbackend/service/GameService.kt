@@ -27,17 +27,6 @@ class GameService {
     private val players = ConcurrentHashMap<String, Player>()
     private val currentRound = AtomicInteger(0)
     private val logger: Logger = LoggerFactory.getLogger(GameService::class.java)
-
-    //    private val gifts = listOf(
-//        Gift(0, "Подарок где вот такое название 1"),
-//        Gift(1, "Подарок где  вообще какое-то огромное название что даже не влезает 2"),
-//        Gift(2, "Подарок 3"),
-//        Gift(3, "Подарок 4"),
-//        Gift(4, "Подарок 5"),
-//        Gift(5, "Подарок 6"),
-//        Gift(6, "Подарок 7"),
-//        Gift(7, "Подарок 8"),
-//    )
     private lateinit var gifts: List<Gift>
     private val newPlayerId = AtomicInteger(1)
     private var currentTurnPlayer: Player? = null
@@ -58,9 +47,6 @@ class GameService {
             player.isDisconnected = false
             return player
         }
-//        if (currentRound.get() != 0) {
-//            return null
-//        }
         if (players.size >= 9) {
             return null
         }
