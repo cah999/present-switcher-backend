@@ -94,19 +94,6 @@ class GameService {
         return players.values.toList().sortedBy { it.position }
     }
 
-    private fun shufflePlayerTurns() {
-        val shuffledPlayers = players.values.shuffled()
-        shuffledPlayers.forEachIndexed { index, player -> player.turn = index }
-    }
-
-    private fun shufflePlayers() {
-        val shuffledPlayers = players.values.shuffled()
-        shuffledPlayers.forEachIndexed { index, player ->
-            player.position = index
-            player.turn = index
-        }
-    }
-
     fun swapPlayers(playerId1: String, playerId2: String) {
         val player1 = players[playerId1] ?: return
         val player2 = players[playerId2] ?: return
@@ -176,4 +163,16 @@ class GameService {
         return result
     }
 
+    private fun shufflePlayerTurns() {
+        val shuffledPlayers = players.values.shuffled()
+        shuffledPlayers.forEachIndexed { index, player -> player.turn = index }
+    }
+
+    private fun shufflePlayers() {
+        val shuffledPlayers = players.values.shuffled()
+        shuffledPlayers.forEachIndexed { index, player ->
+            player.position = index
+            player.turn = index
+        }
+    }
 }

@@ -20,42 +20,9 @@ class GameWebSocketHandler(
     private val playerSessions = CopyOnWriteArrayList<WebSocketSession>()
     private val logger: Logger = LoggerFactory.getLogger(GameWebSocketHandler::class.java)
 
-    private fun broadcastPlayers() {
-        val players = gameService.getAllPlayers()
-        playerSessions.forEach {
-            it.sendMessage(
-                TextMessage(
-                    objectMapper.writeValueAsString(
-                        OutcomeMessage(
-                            OutcomeAction.UPDATE_PLAYERS,
-                            players
-                        )
-                    )
-                )
-            )
-        }
-    }
 
     fun broadcastPlayersSwap(player1Id: String, player2Id: String) {
         val message = OutcomeMessage(OutcomeAction.UPDATE_SWAPPED_PLAYERS, Pair(player1Id, player2Id))
-        val serializedMessage = objectMapper.writeValueAsString(message)
-        playerSessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
-    }
-
-    private fun sendMessageToPlayer(session: WebSocketSession, message: OutcomeMessage<*>) {
-        session.sendMessage(TextMessage(objectMapper.writeValueAsString(message)))
-    }
-
-    private fun broadcastStartPositions() {
-        val players = gameService.getAllPlayersShuffled()
-        val message = OutcomeMessage(OutcomeAction.START_QUEUE, StartQueueOutcomeData(players))
-        val serializedMessage = objectMapper.writeValueAsString(message)
-        playerSessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
-    }
-
-    private fun broadcastFinalQueue() {
-        val players = gameService.getAllPlayersShuffledQueue()
-        val message = OutcomeMessage(OutcomeAction.FINAL_QUEUE, FinalQueueOutcomeData(players))
         val serializedMessage = objectMapper.writeValueAsString(message)
         playerSessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
     }
@@ -81,20 +48,6 @@ class GameWebSocketHandler(
         }
         sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.PLAYER_TURN, gameService.getCurrentTurnPlayer()))
         sendMessageToPlayer(session, OutcomeMessage(OutcomeAction.JOINED_PLAYER, player))
-    }
-
-    private fun broadcastEndGame() {
-        val players = gameService.getAllPlayers()
-        val updateMessage = OutcomeMessage(OutcomeAction.UPDATE_PLAYERS, players)
-        playerSessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(updateMessage))) }
-
-        val round = gameService.getCurrentRound()
-        val roundMessage = OutcomeMessage(OutcomeAction.ROUND_NAME, round.value)
-        playerSessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(roundMessage))) }
-
-        val currentTurnPlayer = gameService.getCurrentTurnPlayer()
-        val turnMessage = OutcomeMessage(OutcomeAction.PLAYER_TURN, currentTurnPlayer)
-        playerSessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(turnMessage))) }
     }
 
     fun broadcastGameFinal() {
@@ -205,6 +158,55 @@ class GameWebSocketHandler(
     override fun afterConnectionClosed(session: WebSocketSession, status: org.springframework.web.socket.CloseStatus) {
         logger.info("Connection closed: $session")
         playerSessions.remove(session)
+    }
+
+    private fun broadcastPlayers() {
+        val players = gameService.getAllPlayers()
+        playerSessions.forEach {
+            it.sendMessage(
+                TextMessage(
+                    objectMapper.writeValueAsString(
+                        OutcomeMessage(
+                            OutcomeAction.UPDATE_PLAYERS,
+                            players
+                        )
+                    )
+                )
+            )
+        }
+    }
+
+    private fun sendMessageToPlayer(session: WebSocketSession, message: OutcomeMessage<*>) {
+        session.sendMessage(TextMessage(objectMapper.writeValueAsString(message)))
+    }
+
+    private fun broadcastStartPositions() {
+        val players = gameService.getAllPlayersShuffled()
+        val message = OutcomeMessage(OutcomeAction.START_QUEUE, StartQueueOutcomeData(players))
+        val serializedMessage = objectMapper.writeValueAsString(message)
+        playerSessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
+    }
+
+    private fun broadcastFinalQueue() {
+        val players = gameService.getAllPlayersShuffledQueue()
+        val message = OutcomeMessage(OutcomeAction.FINAL_QUEUE, FinalQueueOutcomeData(players))
+        val serializedMessage = objectMapper.writeValueAsString(message)
+        playerSessions.forEach { it.sendMessage(TextMessage(serializedMessage)) }
+    }
+
+
+    private fun broadcastEndGame() {
+        val players = gameService.getAllPlayers()
+        val updateMessage = OutcomeMessage(OutcomeAction.UPDATE_PLAYERS, players)
+        playerSessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(updateMessage))) }
+
+        val round = gameService.getCurrentRound()
+        val roundMessage = OutcomeMessage(OutcomeAction.ROUND_NAME, round.value)
+        playerSessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(roundMessage))) }
+
+        val currentTurnPlayer = gameService.getCurrentTurnPlayer()
+        val turnMessage = OutcomeMessage(OutcomeAction.PLAYER_TURN, currentTurnPlayer)
+        playerSessions.forEach { it.sendMessage(TextMessage(objectMapper.writeValueAsString(turnMessage))) }
     }
 }
 
