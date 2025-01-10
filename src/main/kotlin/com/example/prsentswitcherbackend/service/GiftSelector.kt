@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets
 data class Item(val name: String, val price: Int)
 
 
-object ItemProcessor {
+object GiftSelector {
     private const val ACCEPTABLE_SUM_RANGE = 1000
 
     private val items = mutableListOf<Item>()
@@ -39,7 +39,7 @@ object ItemProcessor {
         return result
     }
 
-    // методы для тестов
+    // метод для тестов
     fun resetItems() = items.clear()
 
     fun getItemsCount() = items.size

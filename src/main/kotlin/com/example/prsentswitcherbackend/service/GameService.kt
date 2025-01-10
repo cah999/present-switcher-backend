@@ -32,9 +32,9 @@ class GameService {
     private var currentTurnPlayer: Player? = null
 
     fun initializeItems() {
-        ItemProcessor.readFile("presents.txt")
+        GiftSelector.readFile("presents.txt")
         logger.info("Старт игры для ${players.size} игроков")
-        val items = ItemProcessor.findItemsWithSum(players.size, 10000, 500)
+        val items = GiftSelector.findItemsWithSum(players.size, 10000, 500)
         val totalSum = items.sumOf { it.price }
         println("Total sum: $totalSum")
         gifts = items.mapIndexed { index, item -> Gift(index, item.name) }
@@ -144,7 +144,7 @@ class GameService {
         currentRound.set(0)
         newPlayerId.set(1)
         gifts = emptyList()
-        ItemProcessor.resetItems()
+        GiftSelector.resetItems()
         currentTurnPlayer = null
     }
 
