@@ -38,138 +38,185 @@ class GameWebSocketHandlerIntegrationTest {
         )
     }
 
-
+    // Тестирование, основанное на потоках данных
     @Test
-    fun `test handleTextMessage JOIN_GAME`() {
+    fun `test handleTextMessage when action is JOIN_GAME should add player`() {
+        // Arrange
         val session = mock(WebSocketSession::class.java)
         val message = IncomeMessage(IncomeAction.JOIN_GAME, JoinGamePayload("Player 1"))
         val textMessage = TextMessage(objectMapper.writeValueAsString(message))
 
+        // Act
         gameWebSocketHandler.handleTextMessage(session, textMessage)
 
+        // Assert
         verify(gameService).addPlayer("Player 1", null)
     }
 
+    // Тестирование, основанное на потоках данных
     @Test
-    fun `test handleTextMessage SWAP_PLAYERS`() {
+    fun `test handleTextMessage when action is SWAP_PLAYERS should swap players`() {
+        // Arrange
         val session = mock(WebSocketSession::class.java)
         val player1Id = "player-1"
         val player2Id = "player-2"
         val message = IncomeMessage(IncomeAction.SWAP_PLAYERS, MovePlayerPayload(player1Id, player2Id))
         val textMessage = TextMessage(objectMapper.writeValueAsString(message))
 
+        // Act
         gameWebSocketHandler.handleTextMessage(session, textMessage)
 
+        // Assert
         verify(gameService).swapPlayers(player1Id, player2Id)
     }
 
+    // Тестирование, основанное на потоках данных
     @Test
-    fun `test handleTextMessage VIEW_GIFT`() {
+    fun `test handleTextMessage when action is VIEW_GIFT should view gift for player`() {
+        // Arrange
         val session = mock(WebSocketSession::class.java)
         val playerId = "player-1"
-
         val message = IncomeMessage(IncomeAction.VIEW_GIFT, ViewGiftPayload(playerId))
         val textMessage = TextMessage(objectMapper.writeValueAsString(message))
 
+        // Act
         gameWebSocketHandler.handleTextMessage(session, textMessage)
 
+        // Assert
         verify(gameService).viewGift(playerId)
     }
 
+    // Угадывание ошибок
     @Test
-    fun `test handleTextMessage ROUND_CHANGED`() {
+    fun `test handleTextMessage when action is ROUND_CHANGED to START should set round and initialize items`() {
+        // Arrange
         val session = mock(WebSocketSession::class.java)
         val newRound = ROUND.START
-
         val message = IncomeMessage(IncomeAction.ROUND_CHANGED, RoundChangePayload(newRound))
         val textMessage = TextMessage(objectMapper.writeValueAsString(message))
 
+        // Act
         gameWebSocketHandler.handleTextMessage(session, textMessage)
 
-        verify(gameService).setCurrentRound(newRound)
-    }
-
-
-    @Test
-    fun `test handleTextMessage EXIT_GAME`() {
-        val session = mock(WebSocketSession::class.java)
-        val playerId = "player-1"
-        val player = Player(playerId, "Player 1")
-        `when`(gameService.findPlayerById(playerId)).thenReturn(player)
-
-        val message = IncomeMessage(IncomeAction.EXIT_GAME, PlayerExitPayload(playerId))
-        val textMessage = TextMessage(objectMapper.writeValueAsString(message))
-
-        gameWebSocketHandler.handleTextMessage(session, textMessage)
-
-        verify(gameService).findPlayerById(playerId)
-        verify(gameService).disconnectPlayer(player)
-    }
-
-    @Test
-    fun `test handleTextMessage ROUND_CHANGED to SWAP`() {
-        val session = mock(WebSocketSession::class.java)
-        val newRound = ROUND.SWAP
-
-        val message = IncomeMessage(IncomeAction.ROUND_CHANGED, RoundChangePayload(newRound))
-        val textMessage = TextMessage(objectMapper.writeValueAsString(message))
-
-        gameWebSocketHandler.handleTextMessage(session, textMessage)
-
-        verify(gameService).setCurrentRound(newRound)
-    }
-
-    @Test
-    fun `test handleTextMessage ROUND_CHANGED to END`() {
-        val session = mock(WebSocketSession::class.java)
-        val newRound = ROUND.END
-
-        val message = IncomeMessage(IncomeAction.ROUND_CHANGED, RoundChangePayload(newRound))
-        val textMessage = TextMessage(objectMapper.writeValueAsString(message))
-
-        gameWebSocketHandler.handleTextMessage(session, textMessage)
-
-        verify(gameService).setCurrentRound(newRound)
-    }
-
-    @Test
-    fun `test handleTextMessage ROUND_CHANGED to FINAL`() {
-        val session = mock(WebSocketSession::class.java)
-        val newRound = ROUND.FINAL
-
-        val message = IncomeMessage(IncomeAction.ROUND_CHANGED, RoundChangePayload(newRound))
-        val textMessage = TextMessage(objectMapper.writeValueAsString(message))
-
-        gameWebSocketHandler.handleTextMessage(session, textMessage)
-
-        verify(gameService).setCurrentRound(newRound)
-    }
-
-    @Test
-    fun `test handleTextMessage ROUND_CHANGED to START`() {
-        val session = mock(WebSocketSession::class.java)
-        val newRound = ROUND.START
-
-        val message = IncomeMessage(IncomeAction.ROUND_CHANGED, RoundChangePayload(newRound))
-        val textMessage = TextMessage(objectMapper.writeValueAsString(message))
-
-        gameWebSocketHandler.handleTextMessage(session, textMessage)
-
+        // Assert
         verify(gameService).setCurrentRound(newRound)
         verify(gameService).initializeItems()
     }
 
+    // Тестирование, основанное на потоках данных
     @Test
-    fun `test handleTextMessage ROUND_CHANGED to WAITING`() {
+    fun `test handleTextMessage when action is EXIT_GAME should disconnect player`() {
+        // Arrange
         val session = mock(WebSocketSession::class.java)
-        val newRound = ROUND.WAITING
+        val playerId = "player-1"
+        val player = Player(playerId, "Player 1")
+        `when`(gameService.findPlayerById(playerId)).thenReturn(player)
+        val message = IncomeMessage(IncomeAction.EXIT_GAME, PlayerExitPayload(playerId))
+        val textMessage = TextMessage(objectMapper.writeValueAsString(message))
 
+        // Act
+        gameWebSocketHandler.handleTextMessage(session, textMessage)
+
+        // Assert
+        verify(gameService).findPlayerById(playerId)
+        verify(gameService).disconnectPlayer(player)
+    }
+
+    // Структурированное базисное тестирование
+    @Test
+    fun `test handleTextMessage when action is ROUND_CHANGED to SWAP should set round to SWAP`() {
+        // Arrange
+        val session = mock(WebSocketSession::class.java)
+        val newRound = ROUND.SWAP
         val message = IncomeMessage(IncomeAction.ROUND_CHANGED, RoundChangePayload(newRound))
         val textMessage = TextMessage(objectMapper.writeValueAsString(message))
 
+        // Act
         gameWebSocketHandler.handleTextMessage(session, textMessage)
 
+        // Assert
+        verify(gameService).setCurrentRound(newRound)
+    }
+
+    // Структурированное базисное тестирование
+    @Test
+    fun `test handleTextMessage when action is ROUND_CHANGED to END should set round to END`() {
+        // Arrange
+        val session = mock(WebSocketSession::class.java)
+        val newRound = ROUND.END
+        val message = IncomeMessage(IncomeAction.ROUND_CHANGED, RoundChangePayload(newRound))
+        val textMessage = TextMessage(objectMapper.writeValueAsString(message))
+
+        // Act
+        gameWebSocketHandler.handleTextMessage(session, textMessage)
+
+        // Assert
+        verify(gameService).setCurrentRound(newRound)
+    }
+
+    // Структурированное базисное тестирование
+    @Test
+    fun `test handleTextMessage when action is ROUND_CHANGED to FINAL should set round to FINAL`() {
+        // Arrange
+        val session = mock(WebSocketSession::class.java)
+        val newRound = ROUND.FINAL
+        val message = IncomeMessage(IncomeAction.ROUND_CHANGED, RoundChangePayload(newRound))
+        val textMessage = TextMessage(objectMapper.writeValueAsString(message))
+
+        // Act
+        gameWebSocketHandler.handleTextMessage(session, textMessage)
+
+        // Assert
+        verify(gameService).setCurrentRound(newRound)
+    }
+
+    // Структурированное базисное тестирование
+    @Test
+    fun `test handleTextMessage when action is ROUND_CHANGED to WAITING should set round to WAITING and end game`() {
+        // Arrange
+        val session = mock(WebSocketSession::class.java)
+        val newRound = ROUND.WAITING
+        val message = IncomeMessage(IncomeAction.ROUND_CHANGED, RoundChangePayload(newRound))
+        val textMessage = TextMessage(objectMapper.writeValueAsString(message))
+
+        // Act
+        gameWebSocketHandler.handleTextMessage(session, textMessage)
+
+        // Assert
         verify(gameService).setCurrentRound(newRound)
         verify(gameService).endGame()
+    }
+
+    // Структурированное базисное тестирование
+    @Test
+    fun `test handleTextMessage when action is ROUND_CHANGED to TALK should set round`() {
+        // Arrange
+        val session = mock(WebSocketSession::class.java)
+        val newRound = ROUND.TALK
+        val message = IncomeMessage(IncomeAction.ROUND_CHANGED, RoundChangePayload(newRound))
+        val textMessage = TextMessage(objectMapper.writeValueAsString(message))
+
+        // Act
+        gameWebSocketHandler.handleTextMessage(session, textMessage)
+
+        // Assert
+        verify(gameService).setCurrentRound(newRound)
+    }
+
+    // Структурированное базисное тестирование
+    @Test
+    fun `test handleTextMessage when action is ROUND_CHANGED to START should set round and shuffle players`() {
+        // Arrange
+        val session = mock(WebSocketSession::class.java)
+        val newRound = ROUND.START
+        val message = IncomeMessage(IncomeAction.ROUND_CHANGED, RoundChangePayload(newRound))
+        val textMessage = TextMessage(objectMapper.writeValueAsString(message))
+
+        // Act
+        gameWebSocketHandler.handleTextMessage(session, textMessage)
+
+        // Assert
+        verify(gameService).setCurrentRound(newRound)
+        verify(gameService).getAllPlayersShuffled()
     }
 }

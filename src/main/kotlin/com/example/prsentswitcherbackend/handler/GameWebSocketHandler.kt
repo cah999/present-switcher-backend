@@ -19,7 +19,6 @@ class GameWebSocketHandler(
 
     private val logger: Logger = LoggerFactory.getLogger(GameWebSocketHandler::class.java)
 
-
     override fun afterConnectionEstablished(session: WebSocketSession) {
         logger.info("New connection established: $session")
         messageService.addPlayerSession(session)
